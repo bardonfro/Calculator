@@ -1,0 +1,32 @@
+body {
+    margin: 0px;
+}
+
+#container {
+    text-align: center;
+}
+
+#device {
+    display: inline-block;
+    background-color: grey;
+}
+
+/* Footer */
+#footer {
+    text-align: center;
+    position: fixed;
+    bottom: 0px;
+    width:100%;
+    background-color: grey;
+}
+
+#footer ul {
+    list-style: none;
+    margin: 2em;
+    padding: 0px;
+}
+
+#footer li {
+    display: inline;
+    margin: 1em;
+}

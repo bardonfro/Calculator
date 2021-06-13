@@ -1,4 +1,4 @@
-# caculator
+# Calculator
 A visual calculator
 
 ## What I've Learned
