@@ -5,35 +5,57 @@
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <p>A visual calculator..</p>
-
         <div id="container">
             <div id="device">
                 <div id="branding-container">
-                    <p>Calc'em'up</p>
+                    Calc
                 </div>
                 <div id="display">
-                    516978
+                    <div id="disp-top" class="disp-row">
+                        <div id="memory-indicator" class="disp-aux">M</div>
+                        <div class="disp-num">68466500</div>
+                    </div>
+                    <div id="disp-bot" class="disp-row">
+                        <div id="operator-indicator" class="disp-aux">+</div>
+                        <div class="disp-num">941000000021.5</div>
+                    </div>
                 </div>
-                <div id="keyboard">
-                    <div id="functions">
-
+                <div id="keypad-wrapper">
+                    <div id="keypad-memory">
+                        <button class="function">Mc</button>
+                        <button class="function">Rcl</button>
+                        <button class="function">Sto</button>
+                        <button class="function">M+</button>
                     </div>
-                    <div id="numpad">
-                        <button class="digit">7</button>
-                        <button class="digit">8</button>
-                        <button class="digit">9</button>
-                        <button class="digit">4</button>
-                        <button class="digit">5</button>
-                        <button class="digit">6</button>
-                        <button class="digit">1</button>
-                        <button class="digit">2</button>
-                        <button class="digit">3</button>
-                        <button class="digit">0</button>
-                        <button class="digit">.</button>
-                    </div>
-                    <div id="operators">
+                    <div id="keypad-primary">
+                        <div class="button-column">
+                            <button class="function">C</button>
+                            <button class="digit">7</button>
+                            <button class="digit">4</button>
+                            <button class="digit">1</button>
+                            <button class="digit">0</button>
+                        </div>
+                        <div class="button-column">
+                            <button class="function">&Sqrt;</button>
+                            <button class="digit">8</button>
+                            <button class="digit">5</button>
+                            <button class="digit">2</button>
+                            <button class="digit">.</button>
 
+                        </div>
+                        <div class="button-column">
+                            <button class="function">&divide;</button>
+                            <button class="digit">9</button>
+                            <button class="digit">6</button>
+                            <button class="digit">3</button>
+                            <button class="function">+/-</button>
+                        </div>
+                        <div class="button-column">
+                            <button class="function">x</button>
+                            <button class="funciton">-</button>
+                            <button class="function">+</button>
+                            <button class="function equals">=</button>
+                        </div>
                     </div>
                 </div>
             </div>
