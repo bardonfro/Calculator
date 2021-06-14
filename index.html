@@ -22,21 +22,21 @@
                 </div>
                 <div id="keypad-wrapper">
                     <div id="keypad-memory">
-                        <button class="function">Mc</button>
-                        <button class="function">Rcl</button>
-                        <button class="function">Sto</button>
-                        <button class="function">M+</button>
+                        <button class="function" data-function="mem-clear">Mc</button>
+                        <button class="function" data-function="mem-recall">Rcl</button>
+                        <button class="function" data-function="mem-store">Sto</button>
+                        <button class="function" data-function="mem-add">M+</button>
                     </div>
                     <div id="keypad-primary">
                         <div class="button-column">
-                            <button class="function">C</button>
+                            <button class="clear" data-function="clear">AC</button>
                             <button class="digit">7</button>
                             <button class="digit">4</button>
                             <button class="digit">1</button>
                             <button class="digit">0</button>
                         </div>
                         <div class="button-column">
-                            <button class="function">&Sqrt;</button>
+                            <button class="function" data-function="sqroot">&Sqrt;</button>
                             <button class="digit">8</button>
                             <button class="digit">5</button>
                             <button class="digit">2</button>
@@ -44,17 +44,17 @@
 
                         </div>
                         <div class="button-column">
-                            <button class="function">&divide;</button>
+                            <button class="operator" data-operation="divide">&divide;</button>
                             <button class="digit">9</button>
                             <button class="digit">6</button>
                             <button class="digit">3</button>
-                            <button class="function">+/-</button>
+                            <button class="function" data-function="invert">+/-</button>
                         </div>
                         <div class="button-column">
-                            <button class="function">x</button>
-                            <button class="funciton">-</button>
-                            <button class="function">+</button>
-                            <button class="function equals">=</button>
+                            <button class="operator" data-operation="multiply">x</button>
+                            <button class="operator" data-operation="subtract">-</button>
+                            <button class="operator" data-operation="add">+</button>
+                            <button class="function equals" data-function="equal">=</button>
                         </div>
                     </div>
                 </div>
