@@ -111,8 +111,8 @@ function passError(type, obj) {
 }
 
 function placeDigit(num) {
-    if (workingNum.length >= maxDigits) {
-        passError("Size", workingNum)
+    if (workingNum.length >= maxDigits ||
+        num === "." && workingNum.includes(".")) {
         return;
     }
     updWorkingNum(workingNum.concat(num));
