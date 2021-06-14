@@ -47,6 +47,7 @@ body {
 .disp-num {
     overflow: hidden;
     width: 5.5em;
+    height: 1.2em;
 }
 
 .disp-row {
