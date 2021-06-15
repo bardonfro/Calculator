@@ -7,7 +7,7 @@ let maxDigits = 11;
 //Variables and Constants
 
 let memoryContent = 0;
-let workingNum = "";
+let workingNum = "0";
 let standingNum = "";
 let errorStatus = 0;
 let operator = ""
@@ -44,11 +44,11 @@ function buttonClick(e) {
 }
 
 function clearAll () {
-    updWorkingNum("0");
-    updStandingNum("");
-    operIndic.textContent = "";
+    workingNum = "0";
+    standingNum = "";
     errorStatus = 0;
     setOperator("clear");
+    refreshDisplay();
 }
 
 function doClear() {
@@ -71,7 +71,7 @@ function doKeyFunction(f) {
 }
 
 function doKeyOperation (op) {
-    const ans = mathify(op, standingNum, workingNum);
+    const ans = mathify(operator, standingNum, workingNum);
     updStandingNum(ans);
     setOperator(op);
     updWorkingNum("0");
@@ -96,7 +96,11 @@ function getOperationSymbol(op) {
         case "divide":
             return String.fromCharCode(247);
             break;
-        
+        case "error":
+            return "E";
+            break;
+        default:
+            return "";
     }
 }
 
@@ -136,6 +140,8 @@ function mathify(op, a, b) {
             passError("Not num", `${op} ${a} ${b}`)
             return;
     }
+    a = Number(a);
+    b = Number(b);
     if (op === "add") {return a + b;}
     if (op === "subtract") {return a - b;}
     if (op === "multiply") {return a * b;}
@@ -157,7 +163,7 @@ function placeDigit(num) {
         num === "." && workingNum.includes(".")) {
         return;
     }
-    if (workingNum === "0") {
+    if (workingNum === "0" && !(num === ".")) {
         workingNum = "";
     }
     updWorkingNum(workingNum.concat(num));
@@ -183,8 +189,8 @@ function updWorkingNum(num) {
     screen1.textContent = workingNum;
 }
 
-refreshDisplay() {
+function refreshDisplay() {
     screen1.textContent = workingNum;
     screen2.textContent = standingNum;
-    operIndic = getOperationSymbol(operator);
+    operIndic.textContent = getOperationSymbol(operator);
 }
