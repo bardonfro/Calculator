@@ -6,11 +6,12 @@ let maxDigits = 11;
 
 //Variables and Constants
 
-let memoryContent = 0;
+let memoryContent = "0";
 let workingNum = "0";
-let standingNum = "";
-let errorStatus = 0;
-let operator = ""
+let standingNum = "0";
+let errorStatus = false;
+let operator = "clear"    // When operator is clear, weird things happen in mathify
+let tape = [];
 
 
 //Selectors and Event Listeners
@@ -21,19 +22,22 @@ const screen2 = document.querySelector('#disp-top .disp-num');
 const screen1 = document.querySelector('#disp-bot .disp-num');
 
 const btnClear = document.querySelector('.clear');
-btnClear.addEventListener('click', doClear)
+btnClear.addEventListener('click', clear)
 const btnsAll = document.querySelectorAll('#keypad-wrapper button');
 btnsAll.forEach(function(btn) {btn.addEventListener('click', buttonClick)});
+
 
 document.addEventListener('keypress', keypress)
 
 function buttonClick(e) {
     const btn = e.target;
-    if (btn.classList.contains("clear") ||
-        errorStatus) {
+    if (btn.classList.contains("clear")) {
+        clear();
+        return;
+    } else if (errorStatus) {
         return;
     } else if (btn.classList.contains("digit")) {
-        placeDigit(btn.textContent);
+        putDigit(btn.textContent);
     } else if (btn.classList.contains("operator")) {
         doKeyOperation(btn.dataset.operation);
     } else if (btn.classList.contains("function")) {
@@ -41,29 +45,46 @@ function buttonClick(e) {
     } else {
         passError("Button", e.target);
     }
-}
-
-function clearAll () {
-    workingNum = "0";
-    standingNum = "";
-    errorStatus = 0;
-    setOperator("clear");
     refreshDisplay();
 }
 
-function doClear() {
+function keypress(e) {
+    if (errorStatus) {return;}
+    const key = e.key;
+    const numbers = ["0","1","2","3","4","5","6","7","8","9","."];
+    const operators = ["+","-","*","/"];
+    const equals = ["=","Enter","enter"]
+
+    if (numbers.some(i => i === key)) {
+        putDigit(key);
+    } else if (operators.some(i => i === key)) {
+        doKeyOperation(key);
+    } else if (equals.some(i => i === key)) {
+        doKeyFunction("=");
+    }
+    refreshDisplay();
+}
+
+function clear() {
     if (btnClear.textContent === "C") {
-        updWorkingNum("0");
         btnClear.textContent = "AC"
     } else {
-        clearAll();
+        workingNum = "0";
+        standingNum = "0";
+        errorStatus = false;
+        operator ="clear";
     }
+    workingNum = "0";
+    refreshDisplay();
 }
 
 function doKeyFunction(f) {
     console.log("doKeyFunction");
     console.log(f);
     switch (f){
+        case "=":
+            putAnswer();
+            break;
         case "sqroot":
             getSqRoot();
             break;
@@ -71,15 +92,33 @@ function doKeyFunction(f) {
 }
 
 function doKeyOperation (op) {
-    const ans = mathify(operator, standingNum, workingNum);
-    updStandingNum(ans);
-    setOperator(op);
-    updWorkingNum("0");
+    if (operator === "clear" || operator === "=") {
+        standingNum = workingNum;
+    } else {    
+        //validation required? -------------------------------------------------?
+        standingNum = mathify(operator, standingNum, workingNum);
+        console.log(`standingNum: ${standingNum}`);
+        standingNum = standingNum.toString();
+        console.log(`standingNum: ${standingNum}`);
+    }
+    
+    tape.unshift(standingNum);
+    operator = op;
+    workingNum = "0";
 }
 
-function setOperator(op) {
-    operIndic.textContent = getOperationSymbol(op);
-    operator = op;
+const getOperationFromSymbol = function(symb) {
+    switch(symb) {
+        case "+":
+            return "add";
+        case "-":
+            return "subtract";
+        case "*":
+            return "multiply";
+        case "/":
+            return "divide";
+    }
+    passError("Symb", "getOperationFromSymbol(" + symb + ")")
 }
 
 function getOperationSymbol(op) {
@@ -95,6 +134,9 @@ function getOperationSymbol(op) {
             break;
         case "divide":
             return String.fromCharCode(247);
+            break;
+        case "equal":
+            return "=";
             break;
         case "error":
             return "E";
@@ -115,50 +157,48 @@ function getSqRoot() {
 
 }
 
-function keypress(e) {
-    if (errorStatus) {return;}
-    const key = e.key;
-    const numbers = ["0","1","2","3","4","5","6","7","8","9","."];
-    const operators = ["+","-","*","/"];
-    const equals = ["=","Enter","enter"]
-
-    if (numbers.some(i => i === key)) {
-        placeDigit(key);
-    } else if (operators.some(i => i === key)) {
-        setOperator(key);
-    } else if (equals.some(i => i === key)) {
-        doKeyFunction(key);
-    }
-}
-
 function mathify(op, a, b) {
-    if (isNaN(a) || 
-        isNaN(b) ||
-        !typeof(a) === "number" ||
-        !typeof(b) === "number" ||
-        op === "divide" && b === 0) {
-            passError("Not num", `${op} ${a} ${b}`)
-            return;
+    if(!(isNumber(Number(a)) && isNumber(Number(b)))) {
+        passError("Not Num", `mathify(${op}, ${a}, ${b})`);
+        return;
     }
-    a = Number(a);
-    b = Number(b);
-    if (op === "add") {return a + b;}
-    if (op === "subtract") {return a - b;}
-    if (op === "multiply") {return a * b;}
-    if (op === "divide") {return a / b;}
+
+    let ans;
+    [a,b] = [Number(a),Number(b)];
+    
+    switch (op) {
+        case "+":
+            ans = a + b;
+            break;
+        case "-":
+            ans = a - b;
+            break;
+        case "*":
+            ans = a * b;
+            break;
+        case "/":
+            if (b === 0) {
+                passError("Div/0", "Mathify")
+                return;
+            }
+            ans = a / b;
+            break;
+        }
+        return ans;
 }
 
 function passError(type, obj) {
     console.log(`${type} Error:`);
     console.log(obj);
-    updStandingNum("");
-    updWorkingNum("0");
     screen1.textContent = `Err: ${type}`
-    errorStatus = 1;
+    errorStatus = true;
     btnClear.textContent = "AC";
 }
 
-function placeDigit(num) {
+const putDigit = function (num) {
+    if (operator === "=") {
+        clear();
+    }
     if (workingNum.length >= maxDigits ||
         num === "." && workingNum.includes(".")) {
         return;
@@ -166,31 +206,35 @@ function placeDigit(num) {
     if (workingNum === "0" && !(num === ".")) {
         workingNum = "";
     }
-    updWorkingNum(workingNum.concat(num));
+
+    workingNum = workingNum.concat(num);
     btnClear.textContent = "C";
 }
 
 function putAnswer(num) {
-    updStandingNum("");
-    updWorkingNum("0");
-    compResult = num;
-    screen1.textContent = num;
-    operIndic.textContent = "=";
+    doKeyOperation("=");
+    [standingNum,workingNum] = [workingNum,standingNum];
     btnClear.textContent = "AC";
 }
 
-function updStandingNum(num) {
-    standingNum = num;
-    screen2.textContent = standingNum;
-}
-
-function updWorkingNum(num) {
-    workingNum = num;
-    screen1.textContent = workingNum;
-}
-
-function refreshDisplay() {
-    screen1.textContent = workingNum;
-    screen2.textContent = standingNum;
+const refreshDisplay = function() {
+    screen1.textContent = workingNum.toString();
+    if (standingNum === "0") {
+        screen2.textContent = "";
+    } else {
+        screen2.textContent = standingNum.toString();
+    }
     operIndic.textContent = getOperationSymbol(operator);
 }
+
+const isNumber = a => !isNaN(a) && typeof(a) === "number";
+
+let vrbs = {
+    standingNum: standingNum,
+    workingNum: workingNum,
+    operator: operator,
+    memoryContent: memoryContent,
+    errorStatus: errorStatus,
+}
+
+const v = function() {console.table(vrbs)}
