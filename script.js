@@ -9,8 +9,8 @@ let maxDigits = 11;
 let memoryContent = 0;
 let workingNum = "";
 let standingNum = "";
-let compResult = "";
 let errorStatus = 0;
+let operator = ""
 
 
 //Selectors and Event Listeners
@@ -35,7 +35,7 @@ function buttonClick(e) {
     } else if (btn.classList.contains("digit")) {
         placeDigit(btn.textContent);
     } else if (btn.classList.contains("operator")) {
-        doOperation(btn.dataset.operation);
+        doKeyOperation(btn.dataset.operation);
     } else if (btn.classList.contains("function")) {
         doKeyFunction(btn.dataset.function);
     } else {
@@ -44,15 +44,16 @@ function buttonClick(e) {
 }
 
 function clearAll () {
-    updWorkingNum("");
+    updWorkingNum("0");
     updStandingNum("");
     operIndic.textContent = "";
     errorStatus = 0;
+    setOperator("clear");
 }
 
 function doClear() {
     if (btnClear.textContent === "C") {
-        updWorkingNum("");
+        updWorkingNum("0");
         btnClear.textContent = "AC"
     } else {
         clearAll();
@@ -60,6 +61,7 @@ function doClear() {
 }
 
 function doKeyFunction(f) {
+    console.log("doKeyFunction");
     console.log(f);
     switch (f){
         case "sqroot":
@@ -68,9 +70,34 @@ function doKeyFunction(f) {
     }
 }
 
-function doOperation(op) {
-    console.log(op);
-    operIndic.textContent = op;
+function doKeyOperation (op) {
+    const ans = mathify(op, standingNum, workingNum);
+    updStandingNum(ans);
+    setOperator(op);
+    updWorkingNum("0");
+}
+
+function setOperator(op) {
+    operIndic.textContent = getOperationSymbol(op);
+    operator = op;
+}
+
+function getOperationSymbol(op) {
+    switch(op){
+        case "add":
+            return "+";
+            break;
+        case "subtract":
+            return "-";
+            break;
+        case "multiply":
+            return "x";
+            break;
+        case "divide":
+            return String.fromCharCode(247);
+            break;
+        
+    }
 }
 
 function getSqRoot() {
@@ -94,17 +121,32 @@ function keypress(e) {
     if (numbers.some(i => i === key)) {
         placeDigit(key);
     } else if (operators.some(i => i === key)) {
-        doOperation(key);
+        setOperator(key);
     } else if (equals.some(i => i === key)) {
         doKeyFunction(key);
     }
+}
+
+function mathify(op, a, b) {
+    if (isNaN(a) || 
+        isNaN(b) ||
+        !typeof(a) === "number" ||
+        !typeof(b) === "number" ||
+        op === "divide" && b === 0) {
+            passError("Not num", `${op} ${a} ${b}`)
+            return;
+    }
+    if (op === "add") {return a + b;}
+    if (op === "subtract") {return a - b;}
+    if (op === "multiply") {return a * b;}
+    if (op === "divide") {return a / b;}
 }
 
 function passError(type, obj) {
     console.log(`${type} Error:`);
     console.log(obj);
     updStandingNum("");
-    updWorkingNum("");
+    updWorkingNum("0");
     screen1.textContent = `Err: ${type}`
     errorStatus = 1;
     btnClear.textContent = "AC";
@@ -115,13 +157,16 @@ function placeDigit(num) {
         num === "." && workingNum.includes(".")) {
         return;
     }
+    if (workingNum === "0") {
+        workingNum = "";
+    }
     updWorkingNum(workingNum.concat(num));
     btnClear.textContent = "C";
 }
 
 function putAnswer(num) {
     updStandingNum("");
-    updWorkingNum("");
+    updWorkingNum("0");
     compResult = num;
     screen1.textContent = num;
     operIndic.textContent = "=";
@@ -138,8 +183,8 @@ function updWorkingNum(num) {
     screen1.textContent = workingNum;
 }
 
-
-const add = (a,b) => a + b;
-const subtract = (a,b) => a - b;
-const multiply = (a,b) => a * b;
-const divide = (a,b) => a / b;
+refreshDisplay() {
+    screen1.textContent = workingNum;
+    screen2.textContent = standingNum;
+    operIndic = getOperationSymbol(operator);
+}
