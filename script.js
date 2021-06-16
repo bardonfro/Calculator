@@ -83,10 +83,13 @@ function doKeyFunction(f) {
     console.log(f);
     switch (f){
         case "=":
+            doKeyOperation("=");
             putAnswer();
             break;
         case "sqroot":
-            getSqRoot();
+            standingNum = Math.sqrt(workingNum);
+            operator = "="
+            putAnswer();
             break;
     }
 }
@@ -97,11 +100,7 @@ function doKeyOperation (op) {
     } else {    
         //validation required? -------------------------------------------------?
         standingNum = mathify(operator, standingNum, workingNum);
-        console.log(`standingNum: ${standingNum}`);
-        standingNum = standingNum.toString();
-        console.log(`standingNum: ${standingNum}`);
     }
-    
     tape.unshift(standingNum);
     operator = op;
     workingNum = "0";
@@ -123,17 +122,14 @@ const getOperationFromSymbol = function(symb) {
 
 function getOperationSymbol(op) {
     switch(op){
-        case "add":
-            return "+";
-            break;
-        case "subtract":
-            return "-";
-            break;
-        case "multiply":
+        case "*":
             return "x";
             break;
-        case "divide":
+        case "/":
             return String.fromCharCode(247);
+            break;
+        case "clear":
+            return "";
             break;
         case "equal":
             return "=";
@@ -142,13 +138,13 @@ function getOperationSymbol(op) {
             return "E";
             break;
         default:
-            return "";
+            return op;
     }
 }
 
 function getSqRoot() {
     let ans;
-    if (workingNum.length > 0) {
+    if (!workingNum === 0) {
         ans = Math.sqrt(workingNum);
     } else {
         ans = Math.sqrt(standingNum);
@@ -184,7 +180,8 @@ function mathify(op, a, b) {
             ans = a / b;
             break;
         }
-        return ans;
+        
+        return ans.toString();
 }
 
 function passError(type, obj) {
@@ -212,8 +209,7 @@ const putDigit = function (num) {
 }
 
 function putAnswer(num) {
-    doKeyOperation("=");
-    [standingNum,workingNum] = [workingNum,standingNum];
+    [standingNum, workingNum] = ["0",standingNum];
     btnClear.textContent = "AC";
 }
 
@@ -238,3 +234,11 @@ let vrbs = {
 }
 
 const v = function() {console.table(vrbs)}
+
+Math.sqrt
+
+function verifyString(input,inputName) {
+    if (!typeof(input) === "string") {
+        console.log(`inputName is ${typeof(input)}: ${input}`)
+    }
+}
