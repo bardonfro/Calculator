@@ -1,12 +1,17 @@
 'use strict'
 
+/* To-Do ----------------------
+* - Memory recall then digit concatenates
+* - Deal with answers longer than the screen
+*/
+
 //Configuration
 let maxDigits = 11;
 
 
 //Variables and Constants
 
-let memoryContent = "0";
+let memoryContent = "";
 let workingNum = "0";
 let standingNum = "0";
 let errorStatus = false;
@@ -65,6 +70,15 @@ function keypress(e) {
     refreshDisplay();
 }
 
+function backspace () {
+    if (operator === "=") {
+            clear();
+        }
+    if (workingNum === "0") {return;}
+        
+    workingNum = workingNum.slice(0, workingNum.length - 1);
+}
+
 function clear() {
     if (btnClear.textContent === "C") {
         btnClear.textContent = "AC"
@@ -79,8 +93,6 @@ function clear() {
 }
 
 function doKeyFunction(f) {
-    console.log("doKeyFunction");
-    console.log(f);
     switch (f){
         case "=":
             doKeyOperation("=");
@@ -91,6 +103,24 @@ function doKeyFunction(f) {
             operator = "="
             putAnswer();
             break;
+        case "invert":
+            workingNum = workingNum * (-1);
+            break;
+        case "backspace":
+            backspace();
+            break;
+        case "mem-store":
+            memoryContent = workingNum;
+            break;
+        case "mem-clear":
+            memoryContent = "";
+            break;
+        case "mem-plus":
+            memoryContent = mathify("+", memoryContent, workingNum).toString();
+            break;
+        case "mem-recall":
+            workingNum = memoryContent;
+            break;
     }
 }
 
@@ -99,7 +129,7 @@ function doKeyOperation (op) {
         standingNum = workingNum;
     } else {    
         //validation required? -------------------------------------------------?
-        standingNum = mathify(operator, standingNum, workingNum);
+        standingNum = mathify(operator, standingNum, workingNum).toString();
     }
     tape.unshift(standingNum);
     operator = op;
@@ -153,6 +183,10 @@ function getSqRoot() {
 
 }
 
+function invert() {
+    workingNum = workingNum * (-1);
+}
+
 function mathify(op, a, b) {
     if(!(isNumber(Number(a)) && isNumber(Number(b)))) {
         passError("Not Num", `mathify(${op}, ${a}, ${b})`);
@@ -181,7 +215,7 @@ function mathify(op, a, b) {
             break;
         }
         
-        return ans.toString();
+        return ans;
 }
 
 function passError(type, obj) {
@@ -221,6 +255,11 @@ const refreshDisplay = function() {
         screen2.textContent = standingNum.toString();
     }
     operIndic.textContent = getOperationSymbol(operator);
+    if (memoryContent.length > 0) {
+        memIndic.textContent = "M";
+    }  else {
+        memIndic.textContent = "";
+    }
 }
 
 const isNumber = a => !isNaN(a) && typeof(a) === "number";
