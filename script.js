@@ -3,6 +3,9 @@
 /* To-Do ----------------------
 * - Memory recall then digit concatenates
 * - Deal with answers longer than the screen
+* - Screen refresh happens twice on AC
+* - How to switch memory multifunction button from Clr and Rcl
+* - Error on line 292. Can't figure why it's undefined.
 */
 
 //Configuration
@@ -26,6 +29,15 @@ const operIndic = document.querySelector('#operator-indicator');
 const screen2 = document.querySelector('#disp-top .disp-num');
 const screen1 = document.querySelector('#disp-bot .disp-num');
 
+const btnMemMulti = document.querySelector('#memory-multifunction');
+btnMemMulti.setClr = function () {
+    this.textContent = "Clr";
+    this.dataset.function = "mem-clear"
+}
+btnMemMulti.setRcl = function () {
+    this.textContent = "Rcl";
+    this.dataset.function = "mem-recall";
+}
 const btnClear = document.querySelector('.clear');
 btnClear.addEventListener('click', clear)
 const btnsAll = document.querySelectorAll('#keypad-wrapper button');
@@ -35,6 +47,7 @@ btnsAll.forEach(function(btn) {btn.addEventListener('click', buttonClick)});
 document.addEventListener('keypress', keypress)
 
 function buttonClick(e) {
+    setMemoryButton(e.target);
     const btn = e.target;
     if (btn.classList.contains("clear")) {
         clear();
@@ -54,6 +67,7 @@ function buttonClick(e) {
 }
 
 function keypress(e) {
+    setMemoryButton(btnClear);
     if (errorStatus) {return;}
     const key = e.key;
     const numbers = ["0","1","2","3","4","5","6","7","8","9","."];
@@ -67,6 +81,7 @@ function keypress(e) {
     } else if (equals.some(i => i === key)) {
         doKeyFunction("=");
     }
+    setMemoryButton();
     refreshDisplay();
 }
 
@@ -116,10 +131,17 @@ function doKeyFunction(f) {
             memoryContent = "";
             break;
         case "mem-plus":
-            memoryContent = mathify("+", memoryContent, workingNum).toString();
+            if (memoryContent.length > 0) {
+                memoryContent = mathify("+", memoryContent, workingNum).toString();
+            } else {
+                memoryContent = workingNum;
+            }
             break;
         case "mem-recall":
-            workingNum = memoryContent;
+            if (memoryContent.length > 0) {
+                workingNum = memoryContent;
+                btnMemMulti.setClr();
+            }
             break;
     }
 }
@@ -249,17 +271,30 @@ function putAnswer(num) {
 
 const refreshDisplay = function() {
     screen1.textContent = workingNum.toString();
+    if (workingNum === "") {
+        screen1.textContent = "0";
+    }
     if (standingNum === "0") {
         screen2.textContent = "";
     } else {
         screen2.textContent = standingNum.toString();
     }
+    console.log('x');
     operIndic.textContent = getOperationSymbol(operator);
     if (memoryContent.length > 0) {
         memIndic.textContent = "M";
     }  else {
         memIndic.textContent = "";
+
     }
+}
+
+function setMemoryButton(btn) {
+    if (btn.dataset.function === "mem-clear") {return;}
+    if (memoryContent.length > 0) {
+        btnMemMulti.setRcl();
+    }
+
 }
 
 const isNumber = a => !isNaN(a) && typeof(a) === "number";
