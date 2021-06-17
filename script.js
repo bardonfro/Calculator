@@ -1,7 +1,7 @@
 'use strict'
 
 /* To-Do ----------------------
-* - Memory recall then digit concatenates
+* - Memory recall then digit concatenates, or then backspace backspaces
 * - There is a getSqRt function, but it's not called
 * - Sqare root of a neg number doesn't return error.
 * - Proper error handling
@@ -119,8 +119,7 @@ function doKeyFunction(f) {
             putAnswer();
             break;
         case "sqroot":
-            standingNum = Math.sqrt(workingNum);
-            operator = "="
+            getSqRoot();
             putAnswer();
             break;
         case "invert":
@@ -201,15 +200,16 @@ function getOperationSymbol(op) {
 }
 
 function getSqRoot() {
-    let ans;
-    if (!workingNum === 0) {
-        ans = Math.sqrt(workingNum);
+    if (!(workingNum === "")) {
+        standingNum = Math.sqrt(workingNum).toString();
+    } else if (workignNum < 0) {
+        passError("Not Num",workingNum)
     } else {
-        ans = Math.sqrt(standingNum);
+        standingNum = Math.sqrt(standingNum).toString();
     }
-    putAnswer(`${ans}`);
-
 }
+
+const isNumber = a => !isNaN(a) && typeof(a) === "number";
 
 function invert() {
     workingNum = workingNum * (-1);
@@ -275,6 +275,7 @@ const putDigit = function (num) {
 function putAnswer(num) {
     [standingNum, workingNum] = ["",standingNum];
     btnClear.textContent = "AC";
+    operator = "=";
 }
 
 const refreshDisplay = function() {
@@ -321,19 +322,6 @@ function sizeForScreen(strNum, len) {
     return arrNum.join(".");
 }
 
-const isNumber = a => !isNaN(a) && typeof(a) === "number";
-
-let vrbs = {
-    standingNum: standingNum,
-    workingNum: workingNum,
-    operator: operator,
-    memoryContent: memoryContent,
-    errorStatus: errorStatus,
-}
-
-const v = function() {console.table(vrbs)}
-
-Math.sqrt
 
 function verifyString(input,inputName) {
     if (!typeof(input) === "string") {
