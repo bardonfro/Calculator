@@ -2,10 +2,12 @@
 
 /* To-Do ----------------------
 * - Memory recall then digit concatenates
-* - Deal with answers longer than the screen
-* - Screen refresh happens twice on AC
-* - How to switch memory multifunction button from Clr and Rcl
-* - Error on line 292. Can't figure why it's undefined.
+* - There is a getSqRt function, but it's not called
+* - Sqare root of a neg number doesn't return error.
+* - Proper error handling
+* - Dividing by blank does not return error. Typing a zero does, but that doesn't change the display
+* - Dividing by 0, mathify returns undefined. This throws error at line 
+*       159, because undefined.toString()
 */
 
 //Configuration
@@ -15,8 +17,8 @@ let maxDigits = 11;
 //Variables and Constants
 
 let memoryContent = "";
-let workingNum = "0";
-let standingNum = "0";
+let workingNum = "";
+let standingNum = "";
 let errorStatus = false;
 let operator = "clear"    // When operator is clear, weird things happen in mathify
 let tape = [];
@@ -39,19 +41,17 @@ btnMemMulti.setRcl = function () {
     this.dataset.function = "mem-recall";
 }
 const btnClear = document.querySelector('.clear');
-btnClear.addEventListener('click', clear)
 const btnsAll = document.querySelectorAll('#keypad-wrapper button');
 btnsAll.forEach(function(btn) {btn.addEventListener('click', buttonClick)});
 
 
-document.addEventListener('keypress', keypress)
+document.addEventListener('keyup', keypress)
 
 function buttonClick(e) {
     setMemoryButton(e.target);
     const btn = e.target;
     if (btn.classList.contains("clear")) {
         clear();
-        return;
     } else if (errorStatus) {
         return;
     } else if (btn.classList.contains("digit")) {
@@ -68,20 +68,26 @@ function buttonClick(e) {
 
 function keypress(e) {
     setMemoryButton(btnClear);
-    if (errorStatus) {return;}
     const key = e.key;
     const numbers = ["0","1","2","3","4","5","6","7","8","9","."];
     const operators = ["+","-","*","/"];
-    const equals = ["=","Enter","enter"]
-
-    if (numbers.some(i => i === key)) {
+    const equals = ["=","Enter","enter"];
+    const backspace = ["Backspace", "Delete"]; 
+    const escape = ["Escape", "escape", "Esc", "esc"];
+    
+    if (escape.some(i => i === key)) {
+        clear();
+    } else if (errorStatus) {
+        return;
+    } else if (numbers.some(i => i === key)) {
         putDigit(key);
     } else if (operators.some(i => i === key)) {
         doKeyOperation(key);
     } else if (equals.some(i => i === key)) {
         doKeyFunction("=");
+    } else if (backspace.some(i => i === key)) {
+        doKeyFunction("backspace");
     }
-    setMemoryButton();
     refreshDisplay();
 }
 
@@ -98,13 +104,12 @@ function clear() {
     if (btnClear.textContent === "C") {
         btnClear.textContent = "AC"
     } else {
-        workingNum = "0";
-        standingNum = "0";
+        workingNum = "";
+        standingNum = "";
         errorStatus = false;
         operator ="clear";
     }
-    workingNum = "0";
-    refreshDisplay();
+    workingNum = "";
 }
 
 function doKeyFunction(f) {
@@ -149,13 +154,14 @@ function doKeyFunction(f) {
 function doKeyOperation (op) {
     if (operator === "clear" || operator === "=") {
         standingNum = workingNum;
-    } else {    
+    } else if (!(workingNum === "")) {    
         //validation required? -------------------------------------------------?
         standingNum = mathify(operator, standingNum, workingNum).toString();
     }
     tape.unshift(standingNum);
+    btnClear.textContent = "AC";
     operator = op;
-    workingNum = "0";
+    workingNum = "";
 }
 
 const getOperationFromSymbol = function(symb) {
@@ -243,9 +249,11 @@ function mathify(op, a, b) {
 function passError(type, obj) {
     console.log(`${type} Error:`);
     console.log(obj);
-    screen1.textContent = `Err: ${type}`
+    operator = "error";
     errorStatus = true;
     btnClear.textContent = "AC";
+    screen1.textContent = `${type}`
+    return type;
 }
 
 const putDigit = function (num) {
@@ -265,21 +273,19 @@ const putDigit = function (num) {
 }
 
 function putAnswer(num) {
-    [standingNum, workingNum] = ["0",standingNum];
+    [standingNum, workingNum] = ["",standingNum];
     btnClear.textContent = "AC";
 }
 
 const refreshDisplay = function() {
-    screen1.textContent = workingNum.toString();
     if (workingNum === "") {
         screen1.textContent = "0";
-    }
-    if (standingNum === "0") {
-        screen2.textContent = "";
     } else {
-        screen2.textContent = standingNum.toString();
+        screen1.textContent = sizeForScreen(workingNum.toString(),maxDigits);
     }
-    console.log('x');
+   
+    screen2.textContent = sizeForScreen(standingNum.toString(), maxDigits);
+   
     operIndic.textContent = getOperationSymbol(operator);
     if (memoryContent.length > 0) {
         memIndic.textContent = "M";
@@ -295,6 +301,24 @@ function setMemoryButton(btn) {
         btnMemMulti.setRcl();
     }
 
+}
+
+function sizeForScreen(strNum, len) {
+    if (!typeof(strNum) === "string") {
+        return strNum;
+    }
+    let arrNum = strNum.split(".");
+    
+    if (arrNum[1]) {
+        len = len - 1;
+        arrNum[1] = arrNum[1].slice(0,len - arrNum[0].length);
+    }
+
+    if (arrNum[0].length > len) {
+        return passError("Size", strNum);
+    }
+
+    return arrNum.join(".");
 }
 
 const isNumber = a => !isNaN(a) && typeof(a) === "number";
@@ -316,3 +340,5 @@ function verifyString(input,inputName) {
         console.log(`inputName is ${typeof(input)}: ${input}`)
     }
 }
+
+clear();
