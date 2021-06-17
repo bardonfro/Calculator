@@ -2,7 +2,6 @@
 
 /* To-Do ----------------------
 * - Memory recall then digit concatenates, or then backspace backspaces
-* - There is a getSqRt function, but it's not called
 * - Sqare root of a neg number doesn't return error.
 * - Proper error handling
 * - Dividing by blank does not return error. Typing a zero does, but that doesn't change the display
@@ -235,7 +234,7 @@ function mathify(op, a, b) {
             ans = a * b;
             break;
         case "/":
-            if (b === 0) {
+            if (b === "0" || b === "") {
                 passError("Div/0", "Mathify")
                 return;
             }
