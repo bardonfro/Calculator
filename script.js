@@ -25,10 +25,81 @@ let tape = [];
 
 //Selectors and Event Listeners
 
-const memIndic = document.querySelector('#memory-indicator');
-const operIndic = document.querySelector('#operator-indicator');
-const screen2 = document.querySelector('#disp-top .disp-num');
-const screen1 = document.querySelector('#disp-bot .disp-num');
+const display = {
+    memIndic: document.querySelector('#memory-indicator'),
+    operIndic: document.querySelector('#operator-indicator'),
+    secondary: document.querySelector('#disp-top .disp-num'),
+    primary: document.querySelector('#disp-bot .disp-num'),
+    
+    refresh: function () {
+        if (workingNum === "") {
+            display.primary.textContent = "0";
+        } else {
+            display.primary.textContent = sizeForScreen(workingNum.toString(),maxDigits);
+        }
+       
+        display.secondary.textContent = sizeForScreen(standingNum.toString(), maxDigits);
+       
+        display.operIndic.textContent = getOperationSymbol(operator);
+        if (memoryContent.length > 0) {
+            display.memIndic.textContent = "M";
+        }  else {
+            display.memIndic.textContent = "";
+    
+        }
+    },
+}
+
+const operation = {
+    operand1: 2,
+    operand2: 4,
+    operator: "+",
+    result: 0,
+    
+    clear: function () {
+        operand1 = operand2 = operator = result = null;
+    },
+    
+    consoleLog: function () {
+        console.log([this.operand1, this.operand2, this.operator, this.result])
+    },
+
+    run: function (op = this.operator, a = this.operand1, b = this.operand2) {
+        this.operator = op;
+        this.operand1 = a;
+        this.operand2 = b;
+
+        this.result = mathify (op, a, b);
+        return this.result;
+    },
+
+    isValid: function (a) {
+        const res = (typeof(a) === "number" && 
+                !(isNaN(a)) &&
+                !(a === Infinity)
+        );
+        return res;
+    },
+
+    putOperand1: function (a) {
+        if(!this.isValid(a)) {
+            passError("Not Num","a");
+        } else {
+            this.operand1 = a;
+        }
+        this.result = null;
+    },
+
+    putOperand2: function (a) {
+        if(!this.isValid(a)) {
+            passError("Not Num","a");
+        } else {
+            this.operand2 = a;
+        }
+        this.result = null;
+    },
+}
+
 
 const btnMemMulti = document.querySelector('#memory-multifunction');
 btnMemMulti.setClr = function () {
@@ -39,12 +110,13 @@ btnMemMulti.setRcl = function () {
     this.textContent = "Rcl";
     this.dataset.function = "mem-recall";
 }
+
 const btnClear = document.querySelector('.clear');
 const btnsAll = document.querySelectorAll('#keypad-wrapper button');
 btnsAll.forEach(function(btn) {btn.addEventListener('click', buttonClick)});
 
 
-document.addEventListener('keyup', keypress)
+document.addEventListener('keyup',  keypress)
 
 function buttonClick(e) {
     setMemoryButton(e.target);
@@ -251,7 +323,7 @@ function passError(type, obj) {
     operator = "error";
     errorStatus = true;
     btnClear.textContent = "AC";
-    screen1.textContent = `${type}`
+    display.primary.textContent = `${type}`
     return type;
 }
 
@@ -279,18 +351,18 @@ function putAnswer(num) {
 
 const refreshDisplay = function() {
     if (workingNum === "") {
-        screen1.textContent = "0";
+        display.primary.textContent = "0";
     } else {
-        screen1.textContent = sizeForScreen(workingNum.toString(),maxDigits);
+        display.primary.textContent = sizeForScreen(workingNum.toString(),maxDigits);
     }
    
-    screen2.textContent = sizeForScreen(standingNum.toString(), maxDigits);
+    display.secondary.textContent = sizeForScreen(standingNum.toString(), maxDigits);
    
-    operIndic.textContent = getOperationSymbol(operator);
+    display.operIndic.textContent = getOperationSymbol(operator);
     if (memoryContent.length > 0) {
-        memIndic.textContent = "M";
+        display.memIndic.textContent = "M";
     }  else {
-        memIndic.textContent = "";
+        display.memIndic.textContent = "";
 
     }
 }
