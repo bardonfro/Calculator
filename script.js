@@ -28,25 +28,66 @@ let tape = [];
 const display = {
     memIndic: document.querySelector('#memory-indicator'),
     operIndic: document.querySelector('#operator-indicator'),
-    secondary: document.querySelector('#disp-top .disp-num'),
     primary: document.querySelector('#disp-bot .disp-num'),
+    secondary: document.querySelector('#disp-top .disp-num'),
+    maxDigits: 11,
     
-    refresh: function () {
-        if (workingNum === "") {
-            display.primary.textContent = "0";
+    putMemory: function (inp) {
+        let outp;
+        if (inp === null) {
+            outp = null;
         } else {
-            display.primary.textContent = sizeForScreen(workingNum.toString(),maxDigits);
+            outp = this.truncate(inp.toString(), 1);
         }
-       
-        display.secondary.textContent = sizeForScreen(standingNum.toString(), maxDigits);
-       
-        display.operIndic.textContent = getOperationSymbol(operator);
-        if (memoryContent.length > 0) {
-            display.memIndic.textContent = "M";
-        }  else {
-            display.memIndic.textContent = "";
+        this.memIndic.textContent = outp;
+    },
+
+    putOperator: function (inp) {
+        let outp;
+        if (inp === null) {
+            outp = null;
+        } else {
+            outp = this.truncate(inp.toString(), 1);
+        }
+        this.operIndic.textContent = outp;
+    },
     
+    putPrimary: function (inp) {
+        let outp;
+        if (inp === null) {
+            outp = "-";
+        } else {
+            outp = this.truncate(inp.toString(), this.maxDigits);
         }
+        this.primary.textContent = outp;
+    },
+
+    putSecondary: function (inp) {
+        let outp;
+        if (inp === null) {
+            outp = null;
+        } else {
+            outp = this.truncate(inp.toString(), this.maxDigits);
+        }
+        this.secondary.textContent = outp;
+    },
+   
+    truncate: function (str, len) {
+        if (!typeof(str) === "string") {
+            return str;
+        }
+        let arr = str.split(".");
+        
+        if (arr[1]) {
+            len = len - 1;
+            arr[1] = arr[1].slice(0,len - arr[0].length);
+        }
+    
+        if (arr[0].length > len) {
+            return passError("Size", str);
+        }
+    
+        return arr.join(".");
     },
 }
 
@@ -55,16 +96,17 @@ const operation = {
     operand2: 4,
     operator: "+",
     result: 0,
+    staged: 45,
     
     clear: function () {
         operand1 = operand2 = operator = result = null;
     },
     
-    consoleLog: function () {
-        console.log([this.operand1, this.operand2, this.operator, this.result])
+    consoleTable: function () {
+        console.table(this)
     },
 
-    run: function (op = this.operator, a = this.operand1, b = this.operand2) {
+    calculate: function (op = this.operator, a = this.operand1, b = this.operand2) {
         this.operator = op;
         this.operand1 = a;
         this.operand2 = b;
@@ -98,6 +140,22 @@ const operation = {
         }
         this.result = null;
     },
+
+    putOperator: function (nextOperator) {
+        let outp;
+        if (!(this.operand1 === null) &&
+            !(this.operand2 === null)) {
+            this.operand1 = this.calculate();
+        } else if (this.operand1 === null) {
+            this.operand1 = this.staged;
+        } 
+        
+        display.putPrimary(null);
+        display.putSecondary(this.operand1);
+        this.operator = nextOperator;
+        display.putOperator = getOperationSymbol(nextOperator);
+
+    },
 }
 
 
@@ -126,7 +184,7 @@ function buttonClick(e) {
     } else if (errorStatus) {
         return;
     } else if (btn.classList.contains("digit")) {
-        putDigit(btn.textContent);
+        display.putDigit(btn.textContent);
     } else if (btn.classList.contains("operator")) {
         doKeyOperation(btn.dataset.operation);
     } else if (btn.classList.contains("function")) {
@@ -234,19 +292,6 @@ function doKeyOperation (op) {
     workingNum = "";
 }
 
-const getOperationFromSymbol = function(symb) {
-    switch(symb) {
-        case "+":
-            return "add";
-        case "-":
-            return "subtract";
-        case "*":
-            return "multiply";
-        case "/":
-            return "divide";
-    }
-    passError("Symb", "getOperationFromSymbol(" + symb + ")")
-}
 
 function getOperationSymbol(op) {
     switch(op){
