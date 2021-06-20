@@ -1,12 +1,12 @@
 'use strict'
 
 /* To-Do ----------------------
-* - Memory recall then digit concatenates, or then backspace backspaces
 * - Sqare root of a neg number doesn't return error.
 * - Proper error handling
 * - Dividing by blank does not return error. Typing a zero does, but that doesn't change the display
-* - Dividing by 0, mathify returns undefined. This throws error at line 
-*       159, because undefined.toString()
+* - Dividing by 0
+* - Can't do multiple square roots in a row
+* - Invert
 */
 
 //Configuration
@@ -105,18 +105,17 @@ const display = {
 }
 
 const operation = {
-    operand1: null,
-    operand2: null,
-    operator: null,
-    result: null,
-    staged: 45,
+    operand1: "",
+    operand2: "",
+    operator: "",
+    result: "",
     
     clear: function (op1) {
-        this.operand1 = this.operand2 = this.operator = this.result = null;
+        this.operand1 = this.operand2 = this.operator = this.result = "";
         if (op1) {this.operand1 = op1};
         display.putPrimary(this.operand2);
         display.putSecondary(this.operand1);
-        display.putOperator(getOperationSymbol(null));
+        display.putOperator(getOperationSymbol("clear"));
     },
     
     consoleTable: function () {
@@ -128,11 +127,12 @@ const operation = {
         this.operand1 = a;
         this.operand2 = b;
 
-        this.result = mathify (op, a, b);
+        this.result = mathify(op, a, b).toString();
         return this.result;
     },
 
     isValid: function (a) {
+        a = Number(a);
         const res = (typeof(a) === "number" && 
                 !(isNaN(a)) &&
                 !(a === Infinity)
@@ -142,10 +142,10 @@ const operation = {
 
     putAnswer: function () {
         const ans = this.result;
-        operation.clear();
+        //operation.clear();
         strStaged.clear();
         display.putPrimary(ans);
-        display.putSecondary(null);
+        display.putSecondary("");
         display.putOperator("=");
 
     },
@@ -156,21 +156,12 @@ const operation = {
         }
         
         if (!this.operand1) {
-            this.operand1 = a;
+            this.operand1 = a.toString();
             display.putSecondary(this.operand1);
         } else {
-            this.operand2 = a;
+            this.operand2 = a.toString();
         }
-        this.result = null;
-    },
-
-    putOperand2: function (a) {
-        if(!this.isValid(a)) {
-            passError("Not Num","a");
-        } else {
-            this.operand2 = a;
-        }
-        this.result = null;
+        this.result = "";
     },
 
     putOperator: function (nextOperator) {
@@ -178,14 +169,12 @@ const operation = {
         if (nextOperator === "sqroot") {
             ans = this.calculate("sqroot")
         }
-        if (this.operand1 === null &&
-            this.operand2 === null) {return;}
+        if (!this.operand1 && !this.operand2) {return;}
         
-        if (!(this.operand1 === null) &&
-            !(this.operand2 === null)) {
+        if (this.operand1 && this.operand2) {
             ans = this.calculate();
         }        
-        if (!(this.operand2 === null)) {
+        if (this.operand2) {
             this.clear(ans);
         }
         
@@ -231,7 +220,7 @@ const strStaged = {
 
     submit: function () {                  //--------------------- handling 0
         if (this.value.length === 0) {return;}
-        operation.putOperand(Number(this.value));
+        operation.putOperand(this.value);
         this.value = "";
         display.putPrimary(this.value);
         //this.isActive = false;
@@ -256,7 +245,7 @@ btnsAll.forEach(function(btn) {btn.addEventListener('click', buttonClick)});
 document.addEventListener('keyup',  keypress)
 
 function buttonClick(e) {
-    setMemoryButton(e.target);
+    //setMemoryButton(e.target);
     const btn = e.target;
     if (btn.classList.contains("clear")) {
         btnClear.clear();
@@ -417,6 +406,7 @@ function mathify(op, a, b) {
     }
 
     let ans;
+    let athing;
     [a,b] = [Number(a),Number(b)];
     
     switch (op) {
@@ -437,11 +427,18 @@ function mathify(op, a, b) {
             ans = a / b;
             break;
         case "sqroot":
-            if (operation.operand2) {
-                ans = Math.sqrt(operation.operand2); //----------------------change to this.op... if this code becomes part of operation{}
+            let n;    
+            if (strStaged.value) {
+                n= strStaged.value
+            } else if (operation.result) {
+                n = operation.result;
+            } else if (operation.operand2) {
+                n = operation.operand2; //----------------------change to this.op... if this code becomes part of operation{}
             } else {
-                ans = Math.sqrt(operation.operand1);
+                n = operation.operand1;
+                operation.operand2 = operation.operand1;
             }
+            ans = Math.sqrt(a);
             break;
         }
         
@@ -525,4 +522,13 @@ function sizeForScreen(strNum, len) {
     }
 
     return arrNum.join(".");
+}
+
+
+function test (a) {
+    if (a) {
+        return true;
+    } else {
+        return false;
+    }
 }
