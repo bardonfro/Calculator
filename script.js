@@ -1,12 +1,8 @@
 'use strict'
 
-/* To-Do ----------------------
+/* Know bugs ----------------------
 * - Memory recall then digit concatenates, or then backspace backspaces
-* - Sqare root of a neg number doesn't return error.
 * - Proper error handling
-* - Dividing by blank does not return error. Typing a zero does, but that doesn't change the display
-* - Dividing by 0, mathify returns undefined. This throws error at line 
-*       159, because undefined.toString()
 */
 
 //Configuration
@@ -114,6 +110,8 @@ function clear() {
 function doKeyFunction(f) {
     switch (f){
         case "=":
+            if (workingNum === "") {
+                workingNum = "0"}   
             doKeyOperation("=");
             putAnswer();
             break;
@@ -122,7 +120,7 @@ function doKeyFunction(f) {
             putAnswer();
             break;
         case "invert":
-            workingNum = workingNum * (-1);
+            invert();
             break;
         case "backspace":
             backspace();
@@ -199,10 +197,11 @@ function getOperationSymbol(op) {
 }
 
 function getSqRoot() {
-    if (!(workingNum === "")) {
-        standingNum = Math.sqrt(workingNum).toString();
-    } else if (workignNum < 0) {
+    let operand;
+    if (Number(workingNum) < 0) {
         passError("Not Num",workingNum)
+    } else if (!(workingNum === "")) {
+        standingNum = Math.sqrt(workingNum).toString();
     } else {
         standingNum = Math.sqrt(standingNum).toString();
     }
@@ -211,7 +210,8 @@ function getSqRoot() {
 const isNumber = a => !isNaN(a) && typeof(a) === "number";
 
 function invert() {
-    workingNum = workingNum * (-1);
+    if (workingNum === "") {return;}
+    workingNum = (workingNum * (-1)).toString();
 }
 
 function mathify(op, a, b) {
@@ -234,9 +234,9 @@ function mathify(op, a, b) {
             ans = a * b;
             break;
         case "/":
-            if (b === "0" || b === "") {
+            if (!b) {
                 passError("Div/0", "Mathify")
-                return;
+                return "Error";
             }
             ans = a / b;
             break;
@@ -251,7 +251,7 @@ function passError(type, obj) {
     operator = "error";
     errorStatus = true;
     btnClear.textContent = "AC";
-    screen1.textContent = `${type}`
+    errorStatus = `${type}`
     return type;
 }
 
@@ -274,7 +274,8 @@ const putDigit = function (num) {
 function putAnswer(num) {
     [standingNum, workingNum] = ["",standingNum];
     btnClear.textContent = "AC";
-    operator = "=";
+    if (!(operator === "error")) {
+        operator = "=";}
 }
 
 const refreshDisplay = function() {
@@ -293,6 +294,13 @@ const refreshDisplay = function() {
         memIndic.textContent = "";
 
     }
+
+    if (errorStatus) {
+        screen1.textContent = errorStatus;
+        screen2.textContent = "Error";
+        operIndic.textContent = "E";
+    }
+
 }
 
 function setMemoryButton(btn) {
