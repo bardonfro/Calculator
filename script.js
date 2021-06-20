@@ -166,8 +166,10 @@ const operation = {
 
     putOperator: function (nextOperator) {
         let ans;
-        if (nextOperator === "sqroot") {
-            ans = this.calculate("sqroot")
+        if (this.result) {
+            const prevAns = this.result;
+            this.clear();
+            this.putOperand(prevAns);
         }
         if (!this.operand1 && !this.operand2) {return;}
         
@@ -306,7 +308,7 @@ function clear() {
 function doKeyFunction(f) {
     switch (f){
         case "sqroot":
-            strStaged.submit();
+            //strStaged.submit();
             operation.calculate(f);
             operation.putAnswer();
             break;
@@ -429,16 +431,16 @@ function mathify(op, a, b) {
         case "sqroot":
             let n;    
             if (strStaged.value) {
-                n= strStaged.value
+                n = strStaged.value;
             } else if (operation.result) {
                 n = operation.result;
             } else if (operation.operand2) {
                 n = operation.operand2; //----------------------change to this.op... if this code becomes part of operation{}
             } else {
                 n = operation.operand1;
-                operation.operand2 = operation.operand1;
             }
-            ans = Math.sqrt(a);
+            operation.operand1 = operation.operand2 = n;
+            ans = Math.sqrt(n);
             break;
         }
         
