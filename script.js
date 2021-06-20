@@ -25,6 +25,18 @@ let tape = [];
 
 //Selectors and Event Listeners
 
+const btnClear = document.querySelector('.clear');
+btnClear.clear = function () {
+    if (this.textContent === "C") {
+        strStaged.clear();
+    } else if (this.textContent === "AC") {
+        strStaged.clear();
+        operation.clear();
+    }
+    this.textContent = "AC"
+    //strStaged.isActive = true;
+}
+
 const display = {
     memIndic: document.querySelector('#memory-indicator'),
     operIndic: document.querySelector('#operator-indicator'),
@@ -54,7 +66,8 @@ const display = {
     
     putPrimary: function (inp) {
         let outp;
-        if (inp === null) {
+        if (inp === null ||
+            inp === "") {
             outp = "-";
         } else {
             outp = this.truncate(inp.toString(), this.maxDigits);
@@ -92,14 +105,18 @@ const display = {
 }
 
 const operation = {
-    operand1: 2,
-    operand2: 4,
-    operator: "+",
-    result: 0,
+    operand1: null,
+    operand2: null,
+    operator: null,
+    result: null,
     staged: 45,
     
-    clear: function () {
-        operand1 = operand2 = operator = result = null;
+    clear: function (op1) {
+        this.operand1 = this.operand2 = this.operator = this.result = null;
+        if (op1) {this.operand1 = op1};
+        display.putPrimary(this.operand2);
+        display.putSecondary(this.operand1);
+        display.putOperator(getOperationSymbol(null));
     },
     
     consoleTable: function () {
@@ -123,11 +140,26 @@ const operation = {
         return res;
     },
 
-    putOperand1: function (a) {
+    putAnswer: function () {
+        const ans = this.result;
+        operation.clear();
+        strStaged.clear();
+        display.putPrimary(ans);
+        display.putSecondary(null);
+        display.putOperator("=");
+
+    },
+
+    putOperand: function (a) {
         if(!this.isValid(a)) {
             passError("Not Num","a");
-        } else {
+        }
+        
+        if (!this.operand1) {
             this.operand1 = a;
+            display.putSecondary(this.operand1);
+        } else {
+            this.operand2 = a;
         }
         this.result = null;
     },
@@ -142,22 +174,69 @@ const operation = {
     },
 
     putOperator: function (nextOperator) {
-        let outp;
+        let ans;
+        if (nextOperator === "sqroot") {
+            ans = this.calculate("sqroot")
+        }
+        if (this.operand1 === null &&
+            this.operand2 === null) {return;}
+        
         if (!(this.operand1 === null) &&
             !(this.operand2 === null)) {
-            this.operand1 = this.calculate();
-        } else if (this.operand1 === null) {
-            this.operand1 = this.staged;
-        } 
+            ans = this.calculate();
+        }        
+        if (!(this.operand2 === null)) {
+            this.clear(ans);
+        }
         
-        display.putPrimary(null);
-        display.putSecondary(this.operand1);
         this.operator = nextOperator;
-        display.putOperator = getOperationSymbol(nextOperator);
-
+        display.putOperator(getOperationSymbol(nextOperator));
     },
+
 }
 
+const strStaged = {
+    //isActive: true,
+    value: "",
+
+    add: function (num) {
+        if (/*!this.isActive ||*/
+            this.value.length >= display.maxDigits ||
+            num === "." && this.value.includes(".")) {
+            return;
+        }
+        if (this.value === null && (num === ".")) {
+            num = "0.";
+        }
+    
+        this.value = this.value.concat(num);
+        display.putPrimary(this.value);
+        btnClear.textContent = "C";
+    },
+    
+    backspace: function () {
+        if (/*!this.isActive ||*/
+            this.value === "") {
+                return;}
+            
+        this.value = this.value.slice(0, this.value.length - 1);
+        display.putPrimary(this.value);
+    },
+
+    clear: function () {
+        this.value = "";
+        //this.isActive = true;
+        display.putPrimary("");
+    },
+
+    submit: function () {                  //--------------------- handling 0
+        if (this.value.length === 0) {return;}
+        operation.putOperand(Number(this.value));
+        this.value = "";
+        display.putPrimary(this.value);
+        //this.isActive = false;
+    },
+}
 
 const btnMemMulti = document.querySelector('#memory-multifunction');
 btnMemMulti.setClr = function () {
@@ -169,7 +248,7 @@ btnMemMulti.setRcl = function () {
     this.dataset.function = "mem-recall";
 }
 
-const btnClear = document.querySelector('.clear');
+
 const btnsAll = document.querySelectorAll('#keypad-wrapper button');
 btnsAll.forEach(function(btn) {btn.addEventListener('click', buttonClick)});
 
@@ -180,13 +259,15 @@ function buttonClick(e) {
     setMemoryButton(e.target);
     const btn = e.target;
     if (btn.classList.contains("clear")) {
-        clear();
+        btnClear.clear();
     } else if (errorStatus) {
         return;
     } else if (btn.classList.contains("digit")) {
-        display.putDigit(btn.textContent);
+        strStaged.add(btn.textContent);
     } else if (btn.classList.contains("operator")) {
-        doKeyOperation(btn.dataset.operation);
+        strStaged.submit();
+        operation.putOperator(btn.dataset.operation);
+        //strStaged.isActive = true;
     } else if (btn.classList.contains("function")) {
         doKeyFunction(btn.dataset.function);
     } else {
@@ -220,14 +301,6 @@ function keypress(e) {
     refreshDisplay();
 }
 
-function backspace () {
-    if (operator === "=") {
-            clear();
-        }
-    if (workingNum === "0") {return;}
-        
-    workingNum = workingNum.slice(0, workingNum.length - 1);
-}
 
 function clear() {
     if (btnClear.textContent === "C") {
@@ -243,19 +316,21 @@ function clear() {
 
 function doKeyFunction(f) {
     switch (f){
-        case "=":
-            doKeyOperation("=");
-            putAnswer();
-            break;
         case "sqroot":
-            getSqRoot();
-            putAnswer();
+            strStaged.submit();
+            operation.calculate(f);
+            operation.putAnswer();
+            break;
+        case "=":
+            strStaged.submit();
+            operation.calculate();
+            operation.putAnswer();
             break;
         case "invert":
             workingNum = workingNum * (-1);
             break;
         case "backspace":
-            backspace();
+            strStaged.backspace();
             break;
         case "mem-store":
             memoryContent = workingNum;
@@ -292,7 +367,8 @@ function doKeyOperation (op) {
     workingNum = "";
 }
 
-
+// Accepts ["*", "/", "clear", "equal", "error"]
+// Returns symbol for display
 function getOperationSymbol(op) {
     switch(op){
         case "*":
@@ -300,6 +376,9 @@ function getOperationSymbol(op) {
             break;
         case "/":
             return String.fromCharCode(247);
+            break;
+        case "sqroot":
+            return "="
             break;
         case "clear":
             return "";
@@ -357,6 +436,13 @@ function mathify(op, a, b) {
             }
             ans = a / b;
             break;
+        case "sqroot":
+            if (operation.operand2) {
+                ans = Math.sqrt(operation.operand2); //----------------------change to this.op... if this code becomes part of operation{}
+            } else {
+                ans = Math.sqrt(operation.operand1);
+            }
+            break;
         }
         
         return ans;
@@ -395,6 +481,9 @@ function putAnswer(num) {
 }
 
 const refreshDisplay = function() {
+    if (true/*strStaged.isActive*/) {display.memIndic.textContent = "A"}
+    else {display.memIndic.textContent = ""}
+    return;
     if (workingNum === "") {
         display.primary.textContent = "0";
     } else {
@@ -437,12 +526,3 @@ function sizeForScreen(strNum, len) {
 
     return arrNum.join(".");
 }
-
-
-function verifyString(input,inputName) {
-    if (!typeof(input) === "string") {
-        console.log(`inputName is ${typeof(input)}: ${input}`)
-    }
-}
-
-clear();
