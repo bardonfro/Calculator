@@ -1,11 +1,15 @@
 body {
     margin: 0px;
+    background-color: rgb(175,195,208);
 }
 
 #branding-container {
     text-align: right;
     margin: 1em;
-    color: white;
+    color: rgb(208, 193, 175);
+    font-size: 1.2em;
+    font-family: Helvetica, Sans-serif;
+    font-style: italic;
 }
 
 .button-row-memory button {
@@ -25,7 +29,9 @@ body {
 
 #device {
     display: inline-block;
-    background-color: grey;
+    background-color: rgb(66,74,78);
+    border-radius: 1rem;
+    box-shadow: 4px, 4px, 12px ;
 }
 
 #display {
@@ -57,13 +63,19 @@ body {
 
 #keypad-wrapper {
     padding: .2em;
+    margin: .5em;
+
 }
 
 #keypad-wrapper button {
     width: 3rem;
     height: 3rem;
+    box-sizing: border-box;
+    background-color: rgb(208, 193, 175);
     border-radius: .5rem;
-    margin:.1rem;
+    margin:.2rem;
+    border-color: #fbf0d2;
+    border-style: outset;
 }
 
 #keypad-memory {
@@ -89,7 +101,7 @@ body {
 }
 
 #keypad-primary button.equals {
-    height: 6.2rem; /* #keypad-wrapper button {height + margin * 2} */
+    height: 6.4rem; /* #keypad-wrapper button {height + margin * 2} */
 }
 
 /* Footer */
@@ -98,7 +110,12 @@ body {
     position: fixed;
     bottom: 0px;
     width:100%;
-    background-color: grey;
+    background-color: rgb(66,74,78);
+    color: rgb(208, 193, 175);
+}
+
+#footer a {
+    color: rgb(208, 193, 175);
 }
 
 #footer ul {
